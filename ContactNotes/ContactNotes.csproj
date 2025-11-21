@@ -17,6 +17,14 @@
 	</PropertyGroup>
 
 	<ItemGroup>
+	  <Compile Remove="Theory.cs" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <None Include="Theory.cs" />
+	</ItemGroup>
+
+	<ItemGroup>
 		<Reference Include="ResoniteModLoader">
 			<HintPath>$(ResonitePath)Libraries\ResoniteModLoader.dll</HintPath>
 			<Private>False</Private>
@@ -27,6 +35,10 @@
 		</Reference>
 		<Reference Include="FrooxEngine">
 			<HintPath>$(ResonitePath)FrooxEngine.dll</HintPath>
+			<Private>False</Private>
+		</Reference>
+		<Reference Include="Elements.Core">
+			<HintPath>$(ResonitePath)Elements.Core.dll</HintPath>
 			<Private>False</Private>
 		</Reference>
 	</ItemGroup>
