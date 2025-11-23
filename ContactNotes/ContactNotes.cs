@@ -18,10 +18,7 @@ public class ContactNotes : ResoniteMod {
 	public override string Version => VERSION_CONSTANT;
 	public override string Link => "https://github.com/AwesomeTornado/ResoniteContactNotes-RML";
 
-	[AutoRegisterConfigKey]
-	private static readonly ModConfigurationKey<float> NotesSize = new ModConfigurationKey<float>("Notes size", "Change the size of the notes text box.", () => .5f);
-
-	private const string defaultText = "You can write notes in here when you are focused on a contact!\nThey are persistent, and will sync across devices.\nFor additional privacy, at the cost of losing multi device syncing, turn on \"Secure Mode\" in the settings.";
+	private const string defaultText = "You can write notes in here when you are focused on a contact!\nThey are persistent, but don't sync across devices.";
 
 	private const string contactsSaveLocation = "./ContactNotes/Contacts.json";
 
@@ -29,14 +26,11 @@ public class ContactNotes : ResoniteMod {
 
 	private static string focusedContact;
 
-	private static ModConfiguration Config;
-
 	private static bool loaded = false;
 
 	private static Dictionary<string, string> messages;
 
 	public override void OnEngineInit() {
-		Config = GetConfiguration();
 		Harmony harmony = new("com.__Choco__.ContactNotes");
 		harmony.PatchAll();
 
@@ -56,10 +50,12 @@ public class ContactNotes : ResoniteMod {
 				UIBuilder sessionsUi = sessionsUiField.Value;
 				RectTransform newSessionsSpace;
 				RectTransform newNotesSpace;
-				sessionsUi.SplitVertically(Config.GetValue(NotesSize), out newNotesSpace, out newSessionsSpace);
+				sessionsUi.SplitVertically(.25f, out newNotesSpace, out newSessionsSpace);
 				UIBuilder newSessionsUi = new UIBuilder(newSessionsSpace);
 				UIBuilder newNotesUi = new UIBuilder(newNotesSpace);
+
 				notesField = newNotesUi.TextField(defaultText, undo: true, parseRTF: true);
+				
 				focusedContact = "null";
 				__instance.Engine.OnShutdown += onShutdownSyncText;
 			});
@@ -85,11 +81,11 @@ public class ContactNotes : ResoniteMod {
 				return;
 			messages[focusedContact] = notesField.TargetString;
 			focusedContact = __instance is null ? "null" : __instance.SelectedContact.ContactUserId;
-			if (messages.ContainsKey(focusedContact)) {
-				notesField.TargetString = messages[focusedContact];
-				return;
-			}
-			messages.Add(focusedContact, "");
+			
+			if (!messages.ContainsKey(focusedContact))
+				messages.Add(focusedContact, "");
+
+			notesField.TargetString = messages[focusedContact];
 		}
 	}
 }
