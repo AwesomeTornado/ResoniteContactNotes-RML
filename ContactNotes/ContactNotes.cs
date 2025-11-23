@@ -34,13 +34,16 @@ public class ContactNotes : ResoniteMod {
 		Harmony harmony = new("com.__Choco__.ContactNotes");
 		harmony.PatchAll();
 
+		//Currently all syncing is done locally on a json file
+		//this is secure and works well, but people will probably be lookign for cloud var syncing
+		//Feel free to PR this, just please include a setting to disable it for security reasons.
 		if (File.Exists(contactsSaveLocation))
 			messages = JsonSerializer.Deserialize<Dictionary<string, string>>(File.ReadAllText(contactsSaveLocation));
 
 		if (messages is null)
 			messages = new Dictionary<string, string>();
 	}
-
+	 
 
 	[HarmonyPatch(typeof(ContactsDialog), "OnAttach")]
 	class ContactsDialog_OnAttach_InjectComponents {
@@ -50,10 +53,12 @@ public class ContactNotes : ResoniteMod {
 				UIBuilder sessionsUi = sessionsUiField.Value;
 				RectTransform newSessionsSpace;
 				RectTransform newNotesSpace;
+				//Not quite sure why the proportions are wrong
+				//Please PR if you figure out how to make the notes text box larger
 				sessionsUi.SplitVertically(.25f, out newNotesSpace, out newSessionsSpace);
 				UIBuilder newSessionsUi = new UIBuilder(newSessionsSpace);
 				UIBuilder newNotesUi = new UIBuilder(newNotesSpace);
-
+				
 				notesField = newNotesUi.TextField(defaultText, undo: true, parseRTF: true);
 				
 				focusedContact = "null";
@@ -66,10 +71,12 @@ public class ContactNotes : ResoniteMod {
 		static void onShutdownSyncText() {
 			Msg("Delegate from ContactNotes: AutoSaving current contact.");
 			messages[focusedContact] = notesField.TargetString;
+			Directory.CreateDirectory("./ContactNotes");
 			FileStream saveFile = File.Create(contactsSaveLocation);
 			string notesJSON = JsonSerializer.Serialize(messages);
 			byte[] fileBytes = System.Text.Encoding.UTF8.GetBytes(notesJSON);
 			saveFile.Write(fileBytes);
+			saveFile.Close();
 			Msg("AutoSave Complete!");
 		}
 	}
